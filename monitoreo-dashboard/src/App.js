@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { db } from './firebase'; // Asegúrate de que Firebase esté configurado correctamente
+import { FaHdd } from 'react-icons/fa'; // npm install react-icons
+import logo from './Img/images.png'; // Ajusta el nombre y ruta de la imagen si es necesario
 
 // Función para convertir cadenas como "78.28 GB" a número
 const parseGB = (value) => {
@@ -14,14 +16,12 @@ const SystemDataDisplay = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Configuramos la consulta para recuperar los registros, ordenados por fecha (los más recientes primero)
     const q = query(
       collection(db, 'items'),
       orderBy('fecha', 'desc'),
-      limit(10) // Puedes ajustar el límite según tus necesidades
+      limit(10)
     );
     
-    // Listener en tiempo real
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -45,7 +45,6 @@ const SystemDataDisplay = () => {
       }
     );
     
-    // Limpiar el listener cuando el componente se desmonte
     return () => unsubscribe();
   }, []);
 
@@ -62,95 +61,164 @@ const SystemDataDisplay = () => {
   const freeDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.freeDisk), 0);
 
   // Calcular porcentajes de uso y libre
-  const percentageUse = totalDiskGlobal > 0 ? ((useDiskGlobal / totalDiskGlobal) * 100).toFixed(2) : 0;
-  const percentageFree = totalDiskGlobal > 0 ? ((freeDiskGlobal / totalDiskGlobal) * 100).toFixed(2) : 0;
+  const percentageUse = totalDiskGlobal > 0 
+    ? ((useDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
+    : 0;
+  const percentageFree = totalDiskGlobal > 0 
+    ? ((freeDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
+    : 0;
 
-  // Si hay solo un registro, mostramos los datos en dos columnas
-  if (systemData.length === 1) {
-    const item = systemData[0];
-    return (
-      <div style={{ padding: '20px' }}>
-        <h1>Resumen Global de Disco</h1>
-        <p><strong>Total Disk:</strong> {totalDiskGlobal.toFixed(2)} GB</p>
-        <p><strong>Use Disk:</strong> {useDiskGlobal.toFixed(2)} GB</p>
-        <p><strong>Free Disk:</strong> {freeDiskGlobal.toFixed(2)} GB</p>
-        <p><strong>Porcentaje de Uso:</strong> {percentageUse}%</p>
-        <p><strong>Porcentaje Libre:</strong> {percentageFree}%</p>
-        <h2>Datos del Cliente</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-          <tbody>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Name</th>
-              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{systemData[0].name}</td>
-            </tr>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Total Disk</th>
-              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{systemData[0].totalDisk}</td>
-            </tr>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Use Disk</th>
-              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{systemData[0].useDisk}</td>
-            </tr>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Free Disk</th>
-              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{systemData[0].freeDisk}</td>
-            </tr>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Total Ram</th>
-              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{systemData[0].totalRam}</td>
-            </tr>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Use Ram</th>
-              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{systemData[0].useRam}</td>
-            </tr>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Free Ram</th>
-              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{systemData[0].freeRam}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  }
+  // Calcular cuántos reportan datos
+  const reportedCount = systemData.filter(
+    (item) => item.totalDisk && item.useDisk && item.freeDisk
+  ).length;
 
-  // Si hay m\u00e1s de un registro, mostramos una tabla tradicional
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Resumen Global de Disco</h1>
-      <p><strong>Total Disk:</strong> {totalDiskGlobal.toFixed(2)} GB</p>
-      <p><strong>Use Disk:</strong> {useDiskGlobal.toFixed(2)} GB</p>
-      <p><strong>Free Disk:</strong> {freeDiskGlobal.toFixed(2)} GB</p>
-      <p><strong>Porcentaje de Uso:</strong> {percentageUse}%</p>
-      <p><strong>Porcentaje Libre:</strong> {percentageFree}%</p>
-      <h2>Datos de Clientes</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f2f2f2' }}>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Name</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Total Disk</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Use Disk</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Free Disk</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Total Ram</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Use Ram</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Free Ram</th>
-          </tr>
-        </thead>
-        <tbody>
-          {systemData.map((item) => (
-            <tr key={item.id}>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.name}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.totalDisk}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.useDisk}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.freeDisk}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.totalRam}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.useRam}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.freeRam}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px' }}>
+      {/* Header con logo y textos */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+        <img
+          src={logo}
+          alt="Logo"
+          style={{ width: '100px', height: 'auto', marginRight: '20px' }}
+        />
+        <div>
+          <h1 style={{ fontSize: '24px', marginBottom: '10px' }}>
+            Monitor nacional de almacenamiento
+          </h1>
+          <div style={{ fontSize: '18px', marginBottom: '10px' }}>
+            <span style={{ marginRight: '20px' }}>
+              <strong>Total:</strong> {totalDiskGlobal.toFixed(2)} GB
+            </span>
+            <span style={{ marginRight: '20px' }}>
+              <strong>Usado:</strong> {useDiskGlobal.toFixed(2)} GB
+            </span>
+            <span>
+              <strong>Libre:</strong> {freeDiskGlobal.toFixed(2)} GB
+            </span>
+          </div>
+          <div style={{ fontSize: '18px' }}>
+            Reportado {reportedCount} de {systemData.length}
+          </div>
+        </div>
+      </div>
+
+      {/* Barra de uso global */}
+      <div
+        style={{
+          width: '100%',
+          height: '20px',
+          backgroundColor: '#e0e0e0',
+          borderRadius: '10px',
+          overflow: 'hidden',
+          marginBottom: '20px'
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${percentageUse}%`,
+            backgroundColor: '#4285f4'
+          }}
+        />
+      </div>
+
+      {/* Grid de tarjetas (cada item) */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+        {systemData.map((item) => {
+          // Verificar si el cliente "reporta" datos
+          const hasData = item.totalDisk && item.useDisk && item.freeDisk;
+          // Calcular porcentaje de uso si hay datos
+          const total = parseGB(item.totalDisk);
+          const used = parseGB(item.useDisk);
+          const usagePercent = total > 0 ? (used / total) * 100 : 0;
+
+          return (
+            <div
+              key={item.id}
+              style={{
+                width: '220px',
+                backgroundColor: '#fff',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                padding: '15px',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
+              {/* Ícono */}
+              <div style={{ marginBottom: '10px' }}>
+                <FaHdd size={32} color="#444" />
+              </div>
+
+              {hasData ? (
+                <>
+                  {/* Nombre del servidor/cliente */}
+                  <div
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      marginBottom: '10px'
+                    }}
+                  >
+                    {item.name}
+                  </div>
+
+                  {/* Información de uso y libre */}
+                  <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                    <div>
+                      {item.totalDisk} <strong>Total</strong>
+                    </div>
+                    <div>
+                      {item.useDisk} <strong>Uso</strong>
+                    </div>
+                    <div>
+                      {item.freeDisk} <strong>Libre</strong>
+                    </div>
+                  </div>
+
+                  {/* Barra de uso individual */}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '10px',
+                      backgroundColor: '#e0e0e0',
+                      borderRadius: '5px',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${usagePercent}%`,
+                        backgroundColor: usagePercent > 80 ? '#d9534f' : '#5cb85c',
+                        transition: 'width 0.3s ease'
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Si no hay datos, mostrar nombre en rojo y "No reporta" */}
+                  <div
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      marginBottom: '10px',
+                      color: 'red'
+                    }}
+                  >
+                    {item.name}
+                  </div>
+                  <div style={{ color: 'red', fontSize: '16px' }}>No reporta</div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
-}
+};
 
 export default SystemDataDisplay;
