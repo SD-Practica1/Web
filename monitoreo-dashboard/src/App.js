@@ -76,7 +76,15 @@ const SystemDataDisplay = () => {
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px' }}>
       {/* Header con logo y textos */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          marginBottom: '20px', 
+          background: '#', 
+          padding: '10px', 
+          borderRadius: '8px', 
+          boxShadow: '0 6px 12px rgba(0,0,0,0)' 
+        }}>
         <img
           src={logo}
           alt="Logo"
@@ -108,17 +116,18 @@ const SystemDataDisplay = () => {
         style={{
           width: '100%',
           height: '20px',
-          backgroundColor: '#e0e0e0',
+          backgroundColor: '#bdc3c7',
           borderRadius: '10px',
           overflow: 'hidden',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          boxShadow: '0 6px 12px rgba(0,0,0,0.4)'
         }}
       >
         <div
           style={{
             height: '100%',
             width: `${percentageUse}%`,
-            backgroundColor: '#4285f4'
+            backgroundColor: '#3498db'  // Celeste vibrante
           }}
         />
       </div>
@@ -140,10 +149,10 @@ const SystemDataDisplay = () => {
                 width: '220px',
                 backgroundColor: '#fff',
                 border: '1px solid #ddd',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 padding: '15px',
                 textAlign: 'center',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                boxShadow: '0 6px 12px rgba(0,0,0,0.4)'
               }}
             >
               {/* Ícono */}
@@ -182,7 +191,7 @@ const SystemDataDisplay = () => {
                     style={{
                       width: '100%',
                       height: '10px',
-                      backgroundColor: '#e0e0e0',
+                      backgroundColor: '#bdc3c7',
                       borderRadius: '5px',
                       overflow: 'hidden'
                     }}
@@ -191,7 +200,7 @@ const SystemDataDisplay = () => {
                       style={{
                         height: '100%',
                         width: `${usagePercent}%`,
-                        backgroundColor: usagePercent > 80 ? '#d9534f' : '#5cb85c',
+                        backgroundColor: usagePercent > 80 ? '#c0392b' : '#2ecc71', // Verde vibrante
                         transition: 'width 0.3s ease'
                       }}
                     />
@@ -205,12 +214,12 @@ const SystemDataDisplay = () => {
                       fontSize: '18px',
                       fontWeight: 'bold',
                       marginBottom: '10px',
-                      color: 'red'
+                      color: '#e74c3c'
                     }}
                   >
                     {item.name}
                   </div>
-                  <div style={{ color: 'red', fontSize: '16px' }}>No reporta</div>
+                  <div style={{ color: '#e74c3c', fontSize: '16px' }}>No reporta</div>
                 </>
               )}
             </div>
