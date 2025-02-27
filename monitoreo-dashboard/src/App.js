@@ -55,9 +55,14 @@ const SystemDataDisplay = () => {
     return <div>Error: {error.message}</div>;
   }
 
-  const totalDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.disco?.total), 0);
-  const useDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.disco?.usado), 0);
-  const freeDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.disco?.libre), 0);
+  const activeDevices = systemData.filter(item => item.conectado); // Solo los activos
+
+const totalDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.total), 0);
+const useDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.usado), 0);
+const freeDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.libre), 0);
+
+const reportedCount = activeDevices.length; // Solo contar los que están activos
+
 
   const percentageUse = totalDiskGlobal > 0 
     ? ((useDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
@@ -66,9 +71,7 @@ const SystemDataDisplay = () => {
     ? ((freeDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
     : 0;
 
-  const reportedCount = systemData.filter(
-    (item) => item.disco?.total && item.disco?.usado && item.disco?.libre
-  ).length;
+  
 
   const toggleExpand = (id) => {
     setExpandedCard(expandedCard === id ? null : id);
