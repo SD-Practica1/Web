@@ -132,7 +132,7 @@ const SystemDataDisplay = () => {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
         {systemData.map((item) => {
-          const hasData = item.disco?.total && item.disco?.usado && item.disco?.libre;
+          const hasData = item.conectado;
           const total = parseGB(item.disco?.total);
           const used = parseGB(item.disco?.usado);
           const usagePercent = total > 0 ? (used / total) * 100 : 0;
@@ -154,12 +154,12 @@ const SystemDataDisplay = () => {
                 <FaHdd size={32} color={usagePercent > 80 ? '#e74c3c' : '#444'} />
               </div>
 
+              <div className={`fw-bold mb-2 ${hasData ? 'text-black' : 'text-danger'}`}>
+                {item.nombre_dispositivo}
+              </div>
+
               {hasData ? (
                 <>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
-                  {item.nombre_dispositivo}
-                </div>
-
                 <div style={{ fontSize: '16px', marginBottom: '10px' }}>
                   <div>
                     {item.disco?.total} <strong>Total</strong>
@@ -190,12 +190,8 @@ const SystemDataDisplay = () => {
                     }}
                   />
                 </div>
-              </>
-              ) : (
-                <div style={{ color: '#e74c3c', fontSize: '16px' }}>No reporta</div>
-              )}
 
-              <button
+                <button
                 onClick={() => toggleExpand(item.id)}
                 className="btn btn-success btn-sm rounded-pill mt-2"
                 style={{ padding: '8px', cursor: 'pointer' }}
@@ -214,6 +210,12 @@ const SystemDataDisplay = () => {
                 <div><strong>RAM Utilizada:</strong> {item.ram?.usada}</div>
               </div>
               )}
+              </>
+              ) : (
+                <div className='text-secondary'>No reporta</div>
+              )}
+
+              
             </div>
           );
         })}
