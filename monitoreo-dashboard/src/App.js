@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from './firebase';
 import { FaHdd } from 'react-icons/fa';
 import logo from './Img/images.png';
@@ -18,8 +18,7 @@ const SystemDataDisplay = () => {
   useEffect(() => {
     const q = query(
       collection(db, 'items'),
-      orderBy('hora_fecha', 'desc'),
-      limit(10)
+      orderBy('hora_fecha', 'desc')
     );
     
     const unsubscribe = onSnapshot(
@@ -56,13 +55,11 @@ const SystemDataDisplay = () => {
   }
 
   const activeDevices = systemData.filter(item => item.conectado); // Solo los activos
+  const totalDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.total), 0);
+  const useDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.usado), 0);
+  const freeDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.libre), 0);
 
-const totalDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.total), 0);
-const useDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.usado), 0);
-const freeDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.libre), 0);
-
-const reportedCount = activeDevices.length; // Solo contar los que están activos
-
+  const reportedCount = activeDevices.length; // Solo contar los que están activos
 
   const percentageUse = totalDiskGlobal > 0 
     ? ((useDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
