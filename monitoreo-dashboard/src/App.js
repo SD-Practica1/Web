@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
-import { db } from './firebase'; // Asegúrate de que Firebase esté configurado correctamente
-import { FaHdd } from 'react-icons/fa'; // npm install react-icons
-import logo from './Img/images.png'; // Ajusta el nombre y ruta de la imagen si es necesario
+import { db } from './firebase';
+import { FaHdd } from 'react-icons/fa';
+import logo from './Img/images.png';
 
-// Función para convertir cadenas como "78.28 GB" a número
 const parseGB = (value) => {
   if (!value) return 0;
   return parseFloat(value.replace(' GB', ''));
@@ -14,11 +13,12 @@ const SystemDataDisplay = () => {
   const [systemData, setSystemData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedCard, setExpandedCard] = useState(null);
 
   useEffect(() => {
     const q = query(
       collection(db, 'items'),
-      orderBy('fecha', 'desc'),
+      orderBy('hora_fecha', 'desc'),
       limit(10)
     );
     
@@ -55,12 +55,10 @@ const SystemDataDisplay = () => {
     return <div>Error: {error.message}</div>;
   }
 
-  // Calcular totales globales para discos
-  const totalDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.totalDisk), 0);
-  const useDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.useDisk), 0);
-  const freeDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.freeDisk), 0);
+  const totalDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.disco?.total), 0);
+  const useDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.disco?.usado), 0);
+  const freeDiskGlobal = systemData.reduce((sum, item) => sum + parseGB(item.disco?.libre), 0);
 
-  // Calcular porcentajes de uso y libre
   const percentageUse = totalDiskGlobal > 0 
     ? ((useDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
     : 0;
@@ -68,22 +66,23 @@ const SystemDataDisplay = () => {
     ? ((freeDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
     : 0;
 
-  // Calcular cuántos reportan datos
   const reportedCount = systemData.filter(
-    (item) => item.totalDisk && item.useDisk && item.freeDisk
+    (item) => item.disco?.total && item.disco?.usado && item.disco?.libre
   ).length;
+
+  const toggleExpand = (id) => {
+    setExpandedCard(expandedCard === id ? null : id);
+  };
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px' }}>
-      {/* Header con logo y textos */}
       <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
           marginBottom: '20px', 
-          background: '#', 
           padding: '10px', 
           borderRadius: '8px', 
-          boxShadow: '0 6px 12px rgba(0,0,0,0)' 
+          boxShadow: '0 6px 12px rgba(0,0,0,0.1)' 
         }}>
         <img
           src={logo}
@@ -111,7 +110,6 @@ const SystemDataDisplay = () => {
         </div>
       </div>
 
-      {/* Barra de uso global */}
       <div
         style={{
           width: '100%',
@@ -127,19 +125,16 @@ const SystemDataDisplay = () => {
           style={{
             height: '100%',
             width: `${percentageUse}%`,
-            backgroundColor: '#3498db'  // Celeste vibrante
+            backgroundColor: '#3498db'
           }}
         />
       </div>
 
-      {/* Grid de tarjetas (cada item) */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
         {systemData.map((item) => {
-          // Verificar si el cliente "reporta" datos
-          const hasData = item.totalDisk && item.useDisk && item.freeDisk;
-          // Calcular porcentaje de uso si hay datos
-          const total = parseGB(item.totalDisk);
-          const used = parseGB(item.useDisk);
+          const hasData = item.disco?.total && item.disco?.usado && item.disco?.libre;
+          const total = parseGB(item.disco?.total);
+          const used = parseGB(item.disco?.usado);
           const usagePercent = total > 0 ? (used / total) * 100 : 0;
 
           return (
@@ -155,72 +150,69 @@ const SystemDataDisplay = () => {
                 boxShadow: '0 6px 12px rgba(0,0,0,0.4)'
               }}
             >
-              {/* Ícono */}
               <div style={{ marginBottom: '10px' }}>
-                <FaHdd size={32} color="#444" />
+                <FaHdd size={32} color={usagePercent > 80 ? '#e74c3c' : '#444'} />
               </div>
 
               {hasData ? (
                 <>
-                  {/* Nombre del servidor/cliente */}
+                <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
+                  {item.nombre_dispositivo}
+                </div>
+
+                <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                  <div>
+                    {item.disco?.total} <strong>Total</strong>
+                  </div>
+                  <div>
+                    {item.disco?.usado} <strong>En uso</strong>
+                  </div>
+                  <div>
+                    {item.disco?.libre} <strong>Libre</strong>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    width: '100%',
+                    height: '10px',
+                    backgroundColor: '#bdc3c7',
+                    borderRadius: '5px',
+                    overflow: 'hidden'
+                  }}
+                >
                   <div
                     style={{
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      marginBottom: '10px'
+                      height: '100%',
+                      width: `${usagePercent}%`,
+                      backgroundColor: usagePercent > 80 ? '#c0392b' : '#2ecc71',
+                      transition: 'width 0.3s ease'
                     }}
-                  >
-                    {item.name}
-                  </div>
-
-                  {/* Información de uso y libre */}
-                  <div style={{ fontSize: '16px', marginBottom: '10px' }}>
-                    <div>
-                      {item.totalDisk} <strong>Total</strong>
-                    </div>
-                    <div>
-                      {item.useDisk} <strong>Uso</strong>
-                    </div>
-                    <div>
-                      {item.freeDisk} <strong>Libre</strong>
-                    </div>
-                  </div>
-
-                  {/* Barra de uso individual */}
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '10px',
-                      backgroundColor: '#bdc3c7',
-                      borderRadius: '5px',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: '100%',
-                        width: `${usagePercent}%`,
-                        backgroundColor: usagePercent > 80 ? '#c0392b' : '#2ecc71', // Verde vibrante
-                        transition: 'width 0.3s ease'
-                      }}
-                    />
-                  </div>
-                </>
+                  />
+                </div>
+              </>
               ) : (
-                <>
-                  {/* Si no hay datos, mostrar nombre en rojo y "No reporta" */}
-                  <div
-                    style={{
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      marginBottom: '10px',
-                      color: '#e74c3c'
-                    }}
-                  >
-                    {item.name}
-                  </div>
-                  <div style={{ color: '#e74c3c', fontSize: '16px' }}>No reporta</div>
-                </>
+                <div style={{ color: '#e74c3c', fontSize: '16px' }}>No reporta</div>
+              )}
+
+              <button
+                onClick={() => toggleExpand(item.id)}
+                className="btn btn-success btn-sm rounded-pill mt-2"
+                style={{ padding: '8px', cursor: 'pointer' }}
+              >
+                Ver más
+              </button>
+
+              {expandedCard === item.id && (
+                <div style={{ marginTop: '10px', fontSize: '14px', textAlign: 'left' }}>
+                <div><strong>Nombre:</strong> {item.disco?.nombre}</div>
+                <div><strong>Tipo:</strong> {item.disco?.tipo}</div>
+                <div><strong>Procesador:</strong> {item.procesador || 'Desconocido'}</div>
+                <hr />
+                <div><strong>Total RAM:</strong> {item.ram?.total}</div>
+                <div><strong>RAM Disponible:</strong> {item.ram?.disponible}</div>
+                <div><strong>RAM Utilizada:</strong> {item.ram?.usada}</div>
+              </div>
               )}
             </div>
           );
