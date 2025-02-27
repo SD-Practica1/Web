@@ -55,20 +55,30 @@ const SystemDataDisplay = () => {
   }
 
   const activeDevices = systemData.filter(item => item.conectado); // Solo los activos
-  const totalDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.total), 0);
-  const useDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.usado), 0);
-  const freeDiskGlobal = activeDevices.reduce((sum, item) => sum + parseGB(item.disco?.libre), 0);
+  const totalDiskGlobal = activeDevices.reduce((sum, item) => {
+    // Sum over all disks in the "discos" array
+    return sum + (item.discos ? item.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.total), 0) : 0);
+  }, 0);
+  
+  const useDiskGlobal = activeDevices.reduce((sum, item) => {
+    // Sum over all disks in the "discos" array
+    return sum + (item.discos ? item.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.usado), 0) : 0);
+  }, 0);
+  
+  const freeDiskGlobal = activeDevices.reduce((sum, item) => {
+    // Sum over all disks in the "discos" array
+    return sum + (item.discos ? item.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.libre), 0) : 0);
+  }, 0);
 
   const reportedCount = activeDevices.length; // Solo contar los que están activos
 
   const percentageUse = totalDiskGlobal > 0 
     ? ((useDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
     : 0;
+  
   const percentageFree = totalDiskGlobal > 0 
     ? ((freeDiskGlobal / totalDiskGlobal) * 100).toFixed(2) 
     : 0;
-
-  
 
   const toggleExpand = (id) => {
     setExpandedCard(expandedCard === id ? null : id);
@@ -133,8 +143,8 @@ const SystemDataDisplay = () => {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
         {systemData.map((item) => {
           const hasData = item.conectado;
-          const total = parseGB(item.disco?.total);
-          const used = parseGB(item.disco?.usado);
+          const total = item.discos ? item.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.total), 0) : 0;
+          const used = item.discos ? item.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.usado), 0) : 0;
           const usagePercent = total > 0 ? (used / total) * 100 : 0;
 
           return (
@@ -162,13 +172,13 @@ const SystemDataDisplay = () => {
                 <>
                 <div style={{ fontSize: '16px', marginBottom: '10px' }}>
                   <div>
-                    {item.disco?.total} <strong>Total</strong>
+                    {total} <strong>Total</strong>
                   </div>
                   <div>
-                    {item.disco?.usado} <strong>En uso</strong>
+                    {used} <strong>En uso</strong>
                   </div>
                   <div>
-                    {item.disco?.libre} <strong>Libre</strong>
+                    {item.discos?.reduce((diskSum, disk) => diskSum + parseGB(disk.libre), 0)} <strong>Libre</strong>
                   </div>
                 </div>
 
@@ -201,21 +211,24 @@ const SystemDataDisplay = () => {
 
               {expandedCard === item.id && (
                 <div style={{ marginTop: '10px', fontSize: '14px', textAlign: 'left' }}>
-                <div><strong>Nombre:</strong> {item.disco?.nombre}</div>
-                <div><strong>Tipo:</strong> {item.disco?.tipo}</div>
-                <div><strong>Procesador:</strong> {item.procesador || 'Desconocido'}</div>
-                <hr />
-                <div><strong>Total RAM:</strong> {item.ram?.total}</div>
-                <div><strong>RAM Disponible:</strong> {item.ram?.disponible}</div>
-                <div><strong>RAM Utilizada:</strong> {item.ram?.usada}</div>
-              </div>
+                  {item.discos?.map((disk, index) => (
+                    <div key={index}>
+                      <div><strong>Nombre:</strong> {disk.nombre}</div>
+                      <div><strong>Tipo:</strong> {disk.tipo}</div>
+                      <div><strong>Montaje:</strong> {disk.montaje}</div>
+                      <div><strong>Total:</strong> {disk.total}</div>
+                      <div><strong>Usado:</strong> {disk.usado}</div>
+                      <div><strong>Libre:</strong> {disk.libre}</div>
+                      <hr />
+                    </div>
+                  ))}
+                </div>
               )}
               </>
               ) : (
                 <div className='text-secondary'>No reporta</div>
               )}
 
-              
             </div>
           );
         })}
