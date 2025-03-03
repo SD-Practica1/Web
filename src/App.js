@@ -9,6 +9,13 @@ const parseGB = (value) => {
   return parseFloat(value.replace(' GB', ''));
 };
 
+const getLatestData = (item) => {
+  const dates = Object.keys(item).filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key)); // Filtra claves con formato de fecha
+  if (dates.length === 0) return null;
+  const latestDate = dates.sort((a, b) => new Date(b) - new Date(a))[0]; // Ordena y toma la más reciente
+  return item[latestDate] || null;
+};
+
 const SystemDataDisplay = () => {
   const [systemData, setSystemData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,14 +51,21 @@ const SystemDataDisplay = () => {
   if (error) return <div>Error: {error.message}</div>;
 
   const activeDevices = systemData.filter(item => item.conectado);
+
   const totalDiskGlobal = activeDevices.reduce((sum, item) => {
-    return sum + (item.discos ? item.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.total), 0) : 0);
+    const latestData = getLatestData(item);
+    if (!latestData || !latestData.discos) return sum;
+
+    return sum + latestData.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.total), 0);
   }, 0);
-  
+
   const useDiskGlobal = activeDevices.reduce((sum, item) => {
-    return sum + (item.discos ? item.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.usado), 0) : 0);
+    const latestData = getLatestData(item);
+    if (!latestData || !latestData.discos) return sum;
+
+    return sum + latestData.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.usado), 0);
   }, 0);
-  
+
   const freeDiskGlobal = totalDiskGlobal - useDiskGlobal;
   const reportedCount = activeDevices.length;
   const diskUsagePercentage = totalDiskGlobal > 0 ? (useDiskGlobal / totalDiskGlobal) * 100 : 0;
