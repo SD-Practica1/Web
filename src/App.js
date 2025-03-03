@@ -45,7 +45,6 @@ const SystemDataDisplay = () => {
         id: doc.id,
         ...doc.data()
       }));
-      console.log(data);
       setSystemData(data);
       setLoading(false);
     }, (err) => {

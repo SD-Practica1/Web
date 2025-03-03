@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { FaHdd } from 'react-icons/fa';
+import { Modal, Button } from 'react-bootstrap';
 import DiskUsagePieChart from './DiskUsagePieChart';
+import DiskUsageHistogram from './DiskUsageHistogram';
+//import RamHistogram from './RamHistogram';
 
 const parseGB = (value) => {
   if (!value) return 0;
@@ -18,10 +21,11 @@ const parseGB = (value) => {
 
 const DeviceCard = ({ item }) => {
   const [expanded, setExpanded] = useState(false);
+  const [showPopout, setShowPopout] = useState(false); // State for popout visibility
   const toggleExpand = () => setExpanded(!expanded);
+  const togglePopout = () => setShowPopout(!showPopout);
 
   const hasData = item.conectado; // Se utiliza conectado directamente
-  console.log(item);
 
   // Obtener la fecha actual en formato YYYY-MM-DD
   const currentDate = new Date().toISOString().split("T")[0]; // Formato YYYY-MM-DD
@@ -32,13 +36,7 @@ const DeviceCard = ({ item }) => {
   const total = currentData?.discos?.reduce((sum, disk) => sum + parseGB(disk.total), 0) || 0;
   const used = currentData?.discos?.reduce((sum, disk) => sum + parseGB(disk.usado), 0) || 0;
   const free = total - used;
-
-  console.log("Total GB:", total);
-  console.log("Usado GB:", used);
-  console.log("Libre GB:", free);
-
   const usagePercent = total > 0 ? (used / total) * 100 : 0;
-
 
   return (
     <div className="card shadow-sm text-center" style={{ width: '220px' }}>
@@ -47,7 +45,7 @@ const DeviceCard = ({ item }) => {
           <FaHdd size={32} color={usagePercent > 80 ? '#e74c3c' : '#444'} />
         </div>
         <h5 className={`fw-bold ${hasData ? 'text-dark' : 'text-danger'}`}>{item.nombre_dispositivo}</h5>
-        {hasData? (
+        {hasData ? (
           <>
             <p className="mb-2">
               <span className="d-block">{total} <strong>Total</strong></span>
@@ -69,6 +67,7 @@ const DeviceCard = ({ item }) => {
             <button onClick={toggleExpand} className="btn btn-success btn-sm rounded-pill mt-2">
               {expanded ? 'Ocultar' : 'Ver más'}
             </button>
+
             {expanded && (
               <div className="mt-3 text-start">
                 {currentData.discos?.map((disk, index) => (
@@ -80,7 +79,7 @@ const DeviceCard = ({ item }) => {
                     <p className="mb-1"><strong>Usado:</strong> {disk.usado}</p>
                     <p className="mb-1"><strong>Libre:</strong> {disk.libre}</p>
 
-                    <DiskUsagePieChart total = {disk.total} used = {disk.usado}/>
+                    <DiskUsagePieChart total={disk.total} used={disk.usado} />
                     <hr />
                   </div>
                 ))}
@@ -90,6 +89,10 @@ const DeviceCard = ({ item }) => {
                   <p className="mb-1"><strong>Usado:</strong> {currentData.ram.usada}</p>
                   <p className="mb-1"><strong>Libre:</strong> {currentData.ram.disponible}</p>
                 </div>
+
+                <Button onClick={togglePopout} className="w-100 mt-3 bg-success" >
+                  Ver Histogramas
+                </Button>
               </div>
             )}
           </>
@@ -97,6 +100,22 @@ const DeviceCard = ({ item }) => {
           <p className="text-secondary">No reporta</p>
         )}
       </div>
+
+      <Modal 
+        show={showPopout} 
+        onHide={togglePopout} 
+        size="lg"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+        style={{ position: 'absolute', right: '-400px', top: '50%' }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Histogramas de Discos y RAM</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <DiskUsageHistogram item = {item}/>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

@@ -1,31 +1,33 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
-// Función para convertir el valor en GB a número flotante
 const parseGB = (value) => {
   if (!value) return 0;
-  const parsed = parseFloat(value.replace(' GB', '').trim()); // Eliminamos ' GB' y cualquier espacio extra
-  return isNaN(parsed) ? 0 : parsed;
+  const parsed = parseFloat(value.replace(' GB', '').replace(' MB', '').trim());
+  return isNaN(parsed) ? 0 : parsed / 1024; // Convertir a TB
 };
 
-// Componente DiskUsageHistogram
-const DiskUsageHistogram = ({ disk }) => {
-  // Comprobamos que el objeto disk tenga los datos correctos
-  const data = [
-    { name: 'Usado', value: parseGB(disk.usado) },
-    { name: 'Libre', value: parseGB(disk.libre) },
-    { name: 'Total', value: parseGB(disk.total) },
-  ];
+const DiskUsageTable = ({ item }) => {
+  const currentDate = new Date().toISOString().split("T")[0]; // Formato YYYY-MM-DD
+  const currentData = item[currentDate];
 
+  const totalUsageInTB = currentData?.discos?.reduce((sum, disk) => sum + parseGB(disk.usado), 0) || 0;
+  console.log(item);
   return (
-    <BarChart width={400} height={250} data={data}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-      <Bar dataKey="value" fill="#3498db" />
-    </BarChart>
+    <table className="table table-striped">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Uso del Disco (TB)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{currentDate}</td>
+          <td>{totalUsageInTB.toFixed(2)} TB</td>
+        </tr>
+      </tbody>
+    </table>
   );
 };
 
-export default DiskUsageHistogram;
+export default DiskUsageTable;
