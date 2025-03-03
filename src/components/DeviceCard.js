@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import { FaHdd } from 'react-icons/fa';
+import DiskUsagePieChart from './DiskUsagePieChart';
 
 const parseGB = (value) => {
   if (!value) return 0;
-  return parseFloat(value.replace(' GB', ''));
+
+  const units = { "MB": 1 / 1024, "GB": 1, "TB": 1024 };
+  const match = value.match(/([\d.]+)\s*(MB|GB|TB)/);
+
+  if (match) {
+    const [, num, unit] = match;
+    return parseFloat(num) * units[unit];
+  }
+
+  return 0;
 };
 
 const DeviceCard = ({ item }) => {
@@ -19,10 +29,16 @@ const DeviceCard = ({ item }) => {
   // Verificar si hay datos para la fecha actual
   const currentData = item[currentDate];
 
-  const total = currentData && currentData.discos ? currentData.discos.reduce((sum, disk) => sum + parseGB(disk.total), 0) : 0;
-  const used = currentData && currentData.discos ? currentData.discos.reduce((sum, disk) => sum + parseGB(disk.usado), 0) : 0;
-  const usagePercent = total > 0 ? (used / total) * 100 : 0;
+  const total = currentData?.discos?.reduce((sum, disk) => sum + parseGB(disk.total), 0) || 0;
+  const used = currentData?.discos?.reduce((sum, disk) => sum + parseGB(disk.usado), 0) || 0;
   const free = total - used;
+
+  console.log("Total GB:", total);
+  console.log("Usado GB:", used);
+  console.log("Libre GB:", free);
+
+  const usagePercent = total > 0 ? (used / total) * 100 : 0;
+
 
   return (
     <div className="card shadow-sm text-center" style={{ width: '220px' }}>
@@ -38,6 +54,9 @@ const DeviceCard = ({ item }) => {
               <span className="d-block">{used} <strong>En uso</strong></span>
               <span className="d-block">{free} <strong>Libre</strong></span>
             </p>
+
+            {/* Progress Bar */}
+            {/*
             <div className="progress" style={{ height: '10px' }}>
               <div
                 className={`progress-bar ${usagePercent > 80 ? 'bg-danger' : 'bg-success'}`}
@@ -45,6 +64,8 @@ const DeviceCard = ({ item }) => {
                 style={{ width: `${usagePercent}%` }}
               />
             </div>
+            */}
+
             <button onClick={toggleExpand} className="btn btn-success btn-sm rounded-pill mt-2">
               {expanded ? 'Ocultar' : 'Ver más'}
             </button>
@@ -58,6 +79,8 @@ const DeviceCard = ({ item }) => {
                     <p className="mb-1"><strong>Total:</strong> {disk.total}</p>
                     <p className="mb-1"><strong>Usado:</strong> {disk.usado}</p>
                     <p className="mb-1"><strong>Libre:</strong> {disk.libre}</p>
+
+                    <DiskUsagePieChart total = {disk.total} used = {disk.usado}/>
                     <hr />
                   </div>
                 ))}

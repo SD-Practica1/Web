@@ -3,10 +3,20 @@ import { collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from './firebase';
 import logo from './Img/images.png';
 import DeviceCard from './components/DeviceCard';
+import DiskUsagePieChart from './components/DiskUsagePieChart';
 
 const parseGB = (value) => {
   if (!value) return 0;
-  return parseFloat(value.replace(' GB', ''));
+
+  const units = { "MB": 1 / 1024, "GB": 1, "TB": 1024 };
+  const match = value.match(/([\d.]+)\s*(MB|GB|TB)/);
+
+  if (match) {
+    const [, num, unit] = match;
+    return parseFloat(num) * units[unit];
+  }
+
+  return 0;
 };
 
 const getLatestData = (item) => {
@@ -47,8 +57,8 @@ const SystemDataDisplay = () => {
     return () => unsubscribe();
   }, []);
 
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (loading) return <div className="text-center mt-3">Cargando...</div>;
+  if (error) return <div className="alert alert-danger">Error: {error.message}</div>;
 
   const activeDevices = systemData.filter(item => item.conectado);
 
@@ -85,9 +95,22 @@ const SystemDataDisplay = () => {
           </div>
           <div className="fs-5">Reportado {reportedCount} de {systemData.length}</div>
         </div>
+
+        {/* Sección de discos a la derecha */}
+        <div className="ms-auto bg-light rounded shadow-sm" style={{ minWidth: '250px', display: 'flex', flexDirection: 'row-reverse' }}>
+          <div>
+            <DiskUsagePieChart total={totalDiskGlobal} used={useDiskGlobal} />
+          </div>
+          <div className="ms-3 mt-5">
+            <p><strong>{activeDevices.reduce((count, item) => count + (getLatestData(item)?.discos?.length || 0), 0)} Discos</strong> </p>
+            <p><strong>{parseFloat(diskUsagePercentage.toFixed(2))} %</strong></p>
+          </div>
+        </div>
+
       </div>
   
       {/* Progress Bar */}
+      {/*
       <div className="mb-4">
         <div className="progress" style={{ height: '20px', boxShadow: '0 6px 12px rgba(0,0,0,0.4)' }}>
           <div
@@ -100,6 +123,7 @@ const SystemDataDisplay = () => {
           />
         </div>
       </div>
+      */}
 
       <div className="d-flex flex-wrap gap-4">
         {systemData.map((item) => <DeviceCard key={item.id} item={item} />)}

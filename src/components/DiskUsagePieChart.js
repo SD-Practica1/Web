@@ -3,7 +3,19 @@ import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 
 const parseGB = (value) => {
   if (!value) return 0;
-  return parseFloat(value.replace(' GB', ''));
+
+  // Si el valor ya es un número, lo devolvemos directamente
+  if (!isNaN(value)) return parseFloat(value);
+
+  const units = { "MB": 1 / 1024, "GB": 1, "TB": 1024 };
+  const match = value.match(/([\d.]+)\s*(MB|GB|TB)?/);
+
+  if (match) {
+    const [, num, unit] = match;
+    return parseFloat(num) * (units[unit] || 1); // Si no hay unidad, asumimos GB
+  }
+
+  return 0;
 };
 
 const DiskUsagePieChart = ({ total, used }) => {
