@@ -3,7 +3,8 @@ import { FaHdd } from 'react-icons/fa';
 import { Modal, Button } from 'react-bootstrap';
 import DiskUsagePieChart from './DiskUsagePieChart';
 import DiskUsageHistogram from './DiskUsageHistogram';
-//import RamHistogram from './RamHistogram';
+import InterfaceTable from './InterfaceTable';
+import RamUsageHistogram from './RamUsageHistogram';
 
 const parseGB = (value) => {
   if (!value) return 0;
@@ -21,9 +22,14 @@ const parseGB = (value) => {
 
 const DeviceCard = ({ item }) => {
   const [expanded, setExpanded] = useState(false);
-  const [showPopout, setShowPopout] = useState(false); // State for popout visibility
+  const [showPopout, setShowPopout] = useState(false); // Estado para el modal de disco
+  const [showRamPopout, setshowRamPopout] = useState(false); // Estado para el modal de RAM
+  const [showTablePopout, setShowTablePopout] = useState(false); // Estado para el modal de interfaces
+
   const toggleExpand = () => setExpanded(!expanded);
   const togglePopout = () => setShowPopout(!showPopout);
+  const toggleRamPopout = () => setshowRamPopout(!showRamPopout);
+  const toggleTablePopout = () => setShowTablePopout(!showTablePopout);
 
   const hasData = item.conectado; // Se utiliza conectado directamente
 
@@ -90,8 +96,16 @@ const DeviceCard = ({ item }) => {
                   <p className="mb-1"><strong>Libre:</strong> {currentData.ram.disponible}</p>
                 </div>
 
-                <Button onClick={togglePopout} className="w-100 mt-3 bg-success" >
-                  Ver Histogramas
+                <Button onClick={togglePopout} className="w-100 mt-3 bg-primary" >
+                  Ver Histograma Discos
+                </Button>
+
+                <Button onClick={toggleRamPopout} className="w-100 mt-3 bg-success" >
+                  Ver Histograma RAM
+                </Button>
+
+                <Button onClick={toggleTablePopout} className="w-100 mt-3 bg-info">
+                  Ver Tabla Interfaces
                 </Button>
               </div>
             )}
@@ -101,19 +115,33 @@ const DeviceCard = ({ item }) => {
         )}
       </div>
 
-      <Modal 
-        show={showPopout} 
-        onHide={togglePopout} 
-        size="lg"
-        aria-labelledby="contained-modal-title-vcenter"
-        centered
-        style={{ position: 'absolute', right: '-400px', top: '50%' }}
-      >
+      {/* Modal de Histograma Discos */}
+      <Modal show={showPopout} onHide={togglePopout} size="lg" centered>
         <Modal.Header closeButton>
-          <Modal.Title>Histogramas de Discos y RAM</Modal.Title>
+          <Modal.Title>Histograma de Discos</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <DiskUsageHistogram item = {item}/>
+          <DiskUsageHistogram item={item} />
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal de Histograma RAM */}
+      <Modal show={showRamPopout} onHide={toggleRamPopout} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Histograma de RAM</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <RamUsageHistogram item={item} />
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal de Tabla de Interfaces */}
+      <Modal show={showTablePopout} onHide={toggleTablePopout} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Tabla de Interfaces</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <InterfaceTable interfaces={item.interfaces} />
         </Modal.Body>
       </Modal>
     </div>
