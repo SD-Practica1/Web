@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ComposedChart } from 'recharts';
 
 const parseGB = (value) => {
   if (!value) return 0;
@@ -8,7 +8,6 @@ const parseGB = (value) => {
 };
 
 const DiskUsageHistogram = ({ item }) => {
-  console.log(item);
   if (!item) return null;
 
   // Filtrar solo las claves que son fechas en formato YYYY-MM-DD y ordenarlas cronológicamente
@@ -17,19 +16,28 @@ const DiskUsageHistogram = ({ item }) => {
     .sort((a, b) => new Date(a) - new Date(b));
 
   // Convertir los datos en un formato adecuado para el gráfico
-  const chartData = dateKeys.map((date) => ({
-    date,
-    usage: item[date]?.discos?.reduce((sum, disk) => sum + parseGB(disk.usado), 0) || 0,
-  }));
+  const chartData = dateKeys.map((date) => {
+    const discos = item[date]?.discos || [];
+    const totalUsage = discos.reduce((sum, disk) => sum + parseGB(disk.usado), 0);
+    const diskUsages = discos.map(disk => ({ name: disk.nombre, usage: parseGB(disk.usado) }));
+
+    return {
+      date,
+      usage: totalUsage,
+      ...Object.fromEntries(diskUsages.map(disk => [disk.name, disk.usage]))
+    };
+  });
+
+  // Obtener todas las claves de discos para las líneas del gráfico
+  const allDiskNames = Array.from(new Set(chartData.flatMap(data => Object.keys(data).filter(key => key !== 'date' && key !== 'usage'))));
 
   return (
     <div style={{ display: 'flex', gap: '20px' }}>
-      {/* Tabla de datos */}
       <table className="table table-striped">
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Uso del Disco (TB)</th>
+            <th>Uso Total del Disco (TB)</th>
           </tr>
         </thead>
         <tbody>
@@ -42,15 +50,17 @@ const DiskUsageHistogram = ({ item }) => {
         </tbody>
       </table>
 
-      {/* Gráfico de barras */}
       <div style={{ width: '50%', height: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData}>
+          <ComposedChart data={chartData}>
             <XAxis dataKey="date" />
             <YAxis label={{ value: 'TB', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
             <Bar dataKey="usage" fill="#8884d8" />
-          </BarChart>
+            {allDiskNames.map((diskName, index) => (
+              <Line key={index} type="monotone" dataKey={diskName} stroke={`hsl(${index * 60}, 70%, 50%)`} />
+            ))}
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </div>

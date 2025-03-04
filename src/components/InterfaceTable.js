@@ -3,7 +3,6 @@ import React from "react";
 const InterfaceTable = ({ interfaces }) => {
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Network Interfaces</h2>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg border table table-striped">
           <thead className="bg-gray-200">
