@@ -75,9 +75,24 @@ const SystemDataDisplay = () => {
     return sum + latestData.discos.reduce((diskSum, disk) => diskSum + parseGB(disk.usado), 0);
   }, 0);
 
+  const totalRAMGlobal = activeDevices.reduce((sum, item) => {
+    const latestData = getLatestData(item);
+    if (!latestData || !latestData.ram) return sum;
+    return sum + parseGB(latestData.ram.total);
+  }, 0);
+
+  const useRAMGlobal = activeDevices.reduce((sum, item) => {
+    const latestData = getLatestData(item);
+    if (!latestData || !latestData.ram) return sum;
+    return sum + parseGB(latestData.ram.usada);
+  }, 0);
+
   const freeDiskGlobal = totalDiskGlobal - useDiskGlobal;
+  const freeRAMGlobal = totalRAMGlobal - useRAMGlobal;
+
   const reportedCount = activeDevices.length;
   const diskUsagePercentage = totalDiskGlobal > 0 ? (useDiskGlobal / totalDiskGlobal) * 100 : 0;
+  const ramUsagePercentage = totalRAMGlobal > 0 ? (useRAMGlobal / totalRAMGlobal) * 100 : 0;
 
   return (
     <div className="p-4" style={{ fontFamily: 'Arial, sans-serif' }}>
@@ -91,6 +106,11 @@ const SystemDataDisplay = () => {
             <span className="me-4"><strong>Total:</strong> {totalDiskGlobal.toFixed(2)} GB</span>
             <span className="me-4"><strong>Usado:</strong> {useDiskGlobal.toFixed(2)} GB</span>
             <span><strong>Libre:</strong> {freeDiskGlobal.toFixed(2)} GB</span>
+          </div>
+          <div className="fs-5 mb-3">
+            <span className="me-4"><strong>Total RAM:</strong> {totalRAMGlobal.toFixed(2)} GB</span>
+            <span className="me-4"><strong>Usada:</strong> {useRAMGlobal.toFixed(2)} GB</span>
+            <span><strong>Libre:</strong> {freeRAMGlobal.toFixed(2)} GB</span>
           </div>
           <div className="fs-5">Reportado {reportedCount} de {systemData.length}</div>
         </div>
